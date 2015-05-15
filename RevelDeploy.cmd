@@ -32,7 +32,7 @@ IF EXIST %GOPATH% (
 
 IF EXIST "%WEBROOT_PATH%\azureapp" (
     PUSHD "%WEBROOT_PATH%"
-    ECHO Renaming azureapp ...
+    ECHO Renaming azureapp to avoid file lock conflict when re-deploy ...
     RENAME azureapp azureapptmp
     POPD
 )
