@@ -44,9 +44,6 @@ SET REVELEXE="%GOPATH%\bin\revel.exe"
 ECHO creating %GOAZUREAPP%
 MKDIR %GOAZUREAPP%
 
-:: DELETE ME
-SET DEPLOYMENT_SOURCE=D:\home\site\repository
-
 ECHO --------------------------------------------
 ECHO GOROOT: %GOROOT%
 ECHO GOEXE: %GOEXE%
