@@ -14,6 +14,7 @@ SET GOPATH=%WEBROOT_PATH%\gopath
 SET GOEXE="%GOROOT%\bin\go.exe"
 SET FOLDERNAME=azureapp
 SET GOAZUREAPP=%WEBROOT_PATH%\gopath\src\%FOLDERNAME%
+SET PATH=%PATH%;%GOROOT%\bin
 
 IF EXIST %GOPATH% (
     ECHO %GOPATH% already exist
@@ -29,12 +30,22 @@ IF EXIST %GOPATH% (
     MKDIR "%GOPATH%\src"
 )
 
-GOEXE get github.com/revel/revel
-GOEXE get github.com/revel/cmd/revel
+IF EXIST "%WEBROOT_PATH%\azureapp" (
+    PUSHD "%WEBROOT_PATH%"
+    ECHO Renaming azureapp ...
+    RENAME azureapp azureapptmp
+    POPD
+)
+
+%GOEXE% get github.com/revel/revel
+%GOEXE% get github.com/revel/cmd/revel
 SET REVELEXE="%GOPATH%\bin\revel.exe"
 
 ECHO creating %GOAZUREAPP%
 MKDIR %GOAZUREAPP%
+
+:: DELETE ME
+SET DEPLOYMENT_SOURCE=D:\home\site\repository
 
 ECHO --------------------------------------------
 ECHO GOROOT: %GOROOT%
@@ -42,15 +53,28 @@ ECHO GOEXE: %GOEXE%
 ECHO GOPATH: %GOPATH%
 ECHO GOAZUREAPP: %GOAZUREAPP%
 ECHO REVELEXE: %REVELEXE%
+ECHO DEPLOYMENT_SOURCE: %DEPLOYMENT_SOURCE%
 ECHO --------------------------------------------
+
 ECHO copying source code to %GOAZUREAPP%
 ROBOCOPY "%DEPLOYMENT_SOURCE%" "%GOAZUREAPP%" /E /NFL /NDL /NP /XD .git .hg /XF .deployment deploy.cmd
 
+PUSHD "%GOPATH%\src"
 ECHO Building ...
-%REVELEXE% "%GOAZUREAPP%" "%WEBROOT_PATH%\azureapp"
+%REVELEXE% build "%FOLDERNAME%" "%WEBROOT_PATH%\azureapp"
+POPD
 
-ECHO cleaning up ...
-CD %WEBROOT_PATH%
-RMDIR /S /Q %GOPATH%
+ECHO copying CustomRun.bat
+COPY /Y "%DEPLOYMENT_SOURCE%\CustomRun.bat" "%WEBROOT_PATH%\azureapp"
+
+ECHO copying web.config
+COPY /Y "%DEPLOYMENT_SOURCE%\web.config" "%WEBROOT_PATH%
+
+::ECHO cleaning up ...
+DEL /F /Q "%WEBROOT_PATH%\hostingstart.html"
+IF EXIST "%WEBROOT_PATH%\azureapptmp" (
+    ECHO removing "%WEBROOT_PATH%\azureapptmp" ...
+    RMDIR /S /Q "%WEBROOT_PATH%\azureapptmp"
+)
 
 ECHO DONE!
